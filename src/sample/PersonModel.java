@@ -1,5 +1,6 @@
 package sample;
 
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -8,7 +9,6 @@ import static java.sql.DriverManager.getConnection;
 public class PersonModel {
     Connection conn = null;
     Statement stmt =null;
-    PreparedStatement pstmt=null;
 
     public PersonModel(String url) {
         try {
@@ -20,7 +20,7 @@ public class PersonModel {
     }
 
     public ArrayList<Student> listOfStudents(){
-        ArrayList<Student> studentList =new ArrayList<>();
+        ArrayList<Student> studentList = new ArrayList<>();
         String sql="SELECT StudentID, FirstName, LastName, Address FROM student;";
         ResultSet rs;
         try {
@@ -76,5 +76,26 @@ public class PersonModel {
             throwables.printStackTrace();
         }
         return courseStudentsList;
+    }
+
+    // Update DB with new Grade
+    public void updateStudentGrade(CourseStudent student, Integer grade){
+        // Change getStudentID() to getCourseID() --> add courseID to CourseStudent
+        String sqlSetGrade = "UPDATE enrolled SET Grade = " + grade + " WHERE StudentID = " + student.getStudentID() + ";";
+        String sqlUpdateAvgGrade =
+                "UPDATE student\n" +
+                "SET AvgGrade = (\n" +
+                "    SELECT AVG(E.Grade)\n" +
+                "    FROM enrolled E\n" +
+                "    WHERE student.StudentID = E.StudentID\n" +
+                "    GROUP BY E.StudentID\n" +
+                "    );"
+        ;
+        try {
+            stmt.executeUpdate(sqlSetGrade);
+            stmt.executeUpdate(sqlUpdateAvgGrade);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 }
