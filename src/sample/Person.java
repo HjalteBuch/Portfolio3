@@ -1,5 +1,6 @@
 package sample;
 
+// Super class
 public abstract class Person {
     private String firstName;
     private String lastName;

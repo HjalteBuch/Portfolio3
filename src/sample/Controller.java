@@ -13,9 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Controller {
-    public TableView Tab1StudentTable;
-    public TableColumn Tab1StudentFirstName;
-    public TableColumn Tab1StudentLastName;
+    // All JavaFX GUI components
     public TableView StudentInfoTable;
     public TableColumn StudentFirstNameColumn;
     public TableColumn StudentLastNameColumn;
@@ -35,20 +33,24 @@ public class Controller {
     public Button PrintCourseButton;
     public ComboBox Grades;
 
-    ObservableList<Integer> grades = FXCollections.observableArrayList(new ArrayList<>(Arrays.asList(-3,00,02,4,7,10,12)));
-
+    // Models
     PersonModel personModel = new PersonModel("jdbc:sqlite:/Users/hjaltebuch/OneDrive - Roskilde Universitet/RUC/5. semester/SD/Portfolio 3/new studentDB/Portfolio3/studentDB");
     CourseModel courseModel = new CourseModel("jdbc:sqlite:/Users/hjaltebuch/OneDrive - Roskilde Universitet/RUC/5. semester/SD/Portfolio 3/new studentDB/Portfolio3/studentDB");
 
-    ObservableList<Student> studentList = FXCollections.observableList(personModel.listOfStudents());
+    // Lists for ComboBox
+    ObservableList<Student> studentComboBoxList = FXCollections.observableList(personModel.listOfStudents());
     ObservableList<Course> courseComboBoxObservableList = FXCollections.observableList(courseModel.courseList());
+    ObservableList<Integer> gradesComboBoxList = FXCollections.observableArrayList(new ArrayList<>(Arrays.asList(-3,00,02,4,7,10,12)));
+
     public void initialize(){
-        Tab1StudentTable.setItems(studentList);
-        Tab1StudentFirstName.setCellValueFactory(new PropertyValueFactory<Student, String>("firstName"));
-        Tab1StudentLastName.setCellValueFactory(new PropertyValueFactory<Student, String>("lastName"));
+        // Calculate average grades when initialized and update lists
+        personModel.updateStudentsAverageGrades();
+        courseModel.updateAvgGrades();
+        courseStudentList = personModel.listOfStudentsWithCourses();
+        courseList = courseModel.courseList();
 
-        StudentComboBox.setItems(studentList);
 
+        StudentComboBox.setItems(studentComboBoxList);
         StudentInfoTable.setItems(courseStudentObservableList);
         StudentFirstNameColumn.setCellValueFactory(new PropertyValueFactory<CourseStudent, String>("firstName"));
         StudentLastNameColumn.setCellValueFactory(new PropertyValueFactory<CourseStudent, String>("lastName"));
@@ -58,7 +60,7 @@ public class Controller {
         StudentSemesterColumn.setCellValueFactory(new PropertyValueFactory<CourseStudent, String>("semester"));
         StudentTeacherColumn.setCellValueFactory(new PropertyValueFactory<CourseStudent, String>("teacher"));
 
-        Grades.setItems(grades);
+        Grades.setItems(gradesComboBoxList);
 
         ChooseCourseComboBox.setItems(courseComboBoxObservableList);
         CourseInfoTable.setItems(courseObservableList);
@@ -66,42 +68,54 @@ public class Controller {
         CourseSemesterColumn.setCellValueFactory(new PropertyValueFactory<Course, String>("semester"));
         CourseAvgGradeColumn.setCellValueFactory(new PropertyValueFactory<Course, String>("avgGrade"));
         CourseTeacherColumn.setCellValueFactory(new PropertyValueFactory<Course, String>("teacher"));
-
     }
 
+    // Print selected student to the table view
     ArrayList<CourseStudent> courseStudentList = personModel.listOfStudentsWithCourses();
     ObservableList<CourseStudent> courseStudentObservableList = FXCollections.observableArrayList();
     public void PrintStudentToTable(ActionEvent actionEvent) {
         courseStudentObservableList.clear();
         Student student = (Student) StudentComboBox.getSelectionModel().getSelectedItem();
-        for(int i = 0; i < courseStudentList.size(); i++){
-            if(student.getStudentID() == courseStudentList.get(i).getStudentID()){
-                courseStudentObservableList.add(courseStudentList.get(i));
+        if(student != null) {
+            for (int i = 0; i < courseStudentList.size(); i++) {
+                if (student.getStudentID() == courseStudentList.get(i).getStudentID()) {
+                    courseStudentObservableList.add(courseStudentList.get(i));
+                }
             }
         }
     }
 
+    // Print the selected course to the table view
     ArrayList<Course> courseList = courseModel.courseList();
     ObservableList<Course> courseObservableList = FXCollections.observableArrayList();
     public void PrintCourse(ActionEvent actionEvent) {
         courseObservableList.clear();
         Course course = (Course) ChooseCourseComboBox.getSelectionModel().getSelectedItem();
-        for(int i = 0; i < courseList.size(); i++){
-            if(course.getCourseID() == courseList.get(i).getCourseID()){
-                courseObservableList.add(courseList.get(i));
+        if(course != null) {
+            for (int i = 0; i < courseList.size(); i++) {
+                if (course.getCourseID() == courseList.get(i).getCourseID()) {
+                    courseObservableList.add(courseList.get(i));
+                }
             }
         }
     }
 
+    // Edit grade of selected student
     public void EditGrade(ActionEvent actionEvent) {
-        // Add grade if grade == null
-        // Update Student AvgGrade in DB
-        // Update Course AvgGrade in DB
         CourseStudent student = (CourseStudent) StudentInfoTable.getSelectionModel().getSelectedItem();
         Integer grade = (Integer) Grades.getSelectionModel().getSelectedItem();
-        if(student.getGrade() == 0){
-            personModel.updateStudentGrade(student, grade);
-            courseModel.updateAvgGrades();
-        }
+        // Add grade only if:
+            if (student.getGrade() == 0 && student != null) {
+                // Update Student AvgGrade in DB
+                personModel.updateStudentGrade(student, grade);
+                // Update Course AvgGrade in DB
+                courseModel.updateAvgGrades();
+                // Update displayed Lists
+                courseStudentList = personModel.listOfStudentsWithCourses();
+                courseList = courseModel.courseList();
+                PrintCourse(actionEvent);
+                PrintStudentToTable(actionEvent);
+            }
+
     }
 }

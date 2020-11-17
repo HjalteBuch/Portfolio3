@@ -9,6 +9,7 @@ public class CourseModel {
     Connection conn = null;
     Statement stmt =null;
 
+    // Establish connection to DB when initialized
     public CourseModel(String url) {
         try {
             conn=getConnection(url);
@@ -18,6 +19,8 @@ public class CourseModel {
         }
     }
 
+
+    // Get list of courses from DB by sql query
     public ArrayList<Course> courseList(){
         ArrayList<Course> courseList = new ArrayList<>();
         String sql=
@@ -28,15 +31,14 @@ public class CourseModel {
         ResultSet rs;
         try {
             rs = stmt.executeQuery(sql);
+            // While the result from DB has elements:
             while (rs!=null && rs.next()){
                 int courseID = rs.getInt(1);
                 String courseName = rs.getString(2);
                 double avgGrade = rs.getDouble(3);
                 String semester = rs.getString(4);
-                String teacherFirstName = rs.getString(5);
-                String teacherLastName = rs.getString(6);
-
-                Teacher teacher = new Teacher(teacherFirstName, teacherLastName);
+                Teacher teacher = new Teacher(rs.getString(5), rs.getString(6));
+                // Create course with retrieved data
                 Course course = new Course(courseID, courseName, semester, teacher);
                 course.setAvgGrade(avgGrade);
 
@@ -49,6 +51,7 @@ public class CourseModel {
         return courseList;
     }
 
+    // Update average grades on courses
     public void updateAvgGrades(){
         String sqlUpdateCourseAvgGrade =
                 "UPDATE course\n" +

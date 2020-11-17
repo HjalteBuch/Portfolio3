@@ -1,12 +1,13 @@
 package sample;
 
 public class CourseStudent extends Student{
+    private int courseID;
     private String courseName;
     private int grade;
     private String semester;
-    private String teacher;
+    private Teacher teacher;
 
-    public CourseStudent(int studentID, String firstName, String lastName, String courseName, int grade, String semester, String teacher) {
+    public CourseStudent(int studentID, String firstName, String lastName, String courseName, int grade, String semester, Teacher teacher) {
         super(studentID, firstName, lastName);
         this.courseName = courseName;
         this.grade = grade;
@@ -26,7 +27,17 @@ public class CourseStudent extends Student{
         return semester;
     }
 
-    public String getTeacher() {
-        return teacher;
+    public Teacher getTeacher() { return teacher; }
+
+    public void setCourseName(String courseName) {
+        this.courseName = courseName;
+    }
+
+    public int getCourseID() {
+        return courseID;
+    }
+
+    public void setCourseID(int courseID) {
+        this.courseID = courseID;
     }
 }
